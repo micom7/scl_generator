@@ -43,10 +43,10 @@ def generate_db_sim_mechs(result: MapResult, ctx: Dict[str, Any]) -> str:
         if not group:
             continue
         info = TYPE_MAPPING[type_key]
-        count_const = info["count_const"]
         array_name = info["array_name"]
         sim_state_udt = info["sim_state_udt"]
-        lines.append(f'    {array_name:<6} : ARRAY[0.."{count_const}"] OF "{sim_state_udt}";')
+        upper = len(group) - 1
+        lines.append(f'    {array_name:<6} : ARRAY[0..{upper}] OF "{sim_state_udt}";')
 
     # BEGIN завжди порожній — NON_RETAIN, ініціалізується CPU при старті
     lines += ["END_VAR", "", "BEGIN", "END_DATA_BLOCK", ""]

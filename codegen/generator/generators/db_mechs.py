@@ -30,19 +30,19 @@ def generate_db_mechs(result: MapResult, ctx: Dict[str, Any]) -> str:
         "VERSION : 1.0",
         "",
         "VAR",
-        '    Mechs  : ARRAY [0.."MECHS_COUNT"]   OF "UDT_BaseMechanism";',
+        f'    Mechs  : ARRAY [0..{result.mechs_count}] OF "UDT_BaseMechanism";',
     ]
 
-    # --- VAR: типізовані масиви ---
+    # --- VAR: типізовані масиви (upper bound = count - 1) ---
     for type_key in GROUP_ORDER:
         group = result.by_type.get(type_key, [])
         if not group:
             continue
         info = TYPE_MAPPING[type_key]
-        count_const = info["count_const"]
         array_name = info["array_name"]
         udt = info["udt"]
-        lines.append(f'    {array_name:<6} : ARRAY [0.."{count_const}"] OF "{udt}";')
+        upper = len(group) - 1
+        lines.append(f'    {array_name:<6} : ARRAY [0..{upper}] OF "{udt}";')
 
     lines += ["END_VAR", "", "BEGIN", "    // === ІНІЦІАЛІЗАЦІЯ СЛОТІВ ==="]
 

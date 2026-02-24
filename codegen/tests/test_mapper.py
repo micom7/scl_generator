@@ -55,19 +55,19 @@ def test_counts_full():
         _dev(5, "Fan",     "fan"),
     ]
     r = map_devices(devs)
-    assert r.counts["MECHS_COUNT"]    == 5
-    assert r.counts["NORIAS_COUNT"]   == 1   # 2 норії → [0..1]
-    assert r.counts["REDLERS_COUNT"]  == 0   # 1 редлер → [0..0]
-    assert r.counts["GATES2P_COUNT"]  == 0
-    assert r.counts["FANS_COUNT"]     == 0
+    assert r.counts["MECHS_COUNT"]    == 5   # max(id)
+    assert r.counts["NORIAS_COUNT"]   == 2   # 2 норії
+    assert r.counts["REDLERS_COUNT"]  == 1   # 1 редлер
+    assert r.counts["GATES2P_COUNT"]  == 1   # 1 засувка
+    assert r.counts["FANS_COUNT"]     == 1   # 1 вентилятор
 
 
-# ── Порожній тип → count = -1 ────────────────────────────────────────────────
+# ── Порожній тип → count = 0 ─────────────────────────────────────────────────
 def test_count_empty_type():
     devs = [_dev(1, "Noria", "noria")]
     r = map_devices(devs)
-    assert r.counts["REDLERS_COUNT"] == -1
-    assert r.counts["FANS_COUNT"]    == -1
+    assert r.counts["REDLERS_COUNT"] == 0
+    assert r.counts["FANS_COUNT"]    == 0
 
 
 # ── gate2p: has_simulator = False ─────────────────────────────────────────────

@@ -45,10 +45,10 @@ def generate_db_sim_config(result: MapResult, ctx: Dict[str, Any]) -> str:
             continue
         has_any_sim = True
         info = TYPE_MAPPING[type_key]
-        count_const = info["count_const"]
         array_name = info["array_name"]
         sim_config_udt = info["sim_config_udt"]
-        lines.append(f'    {array_name:<6} : ARRAY[0.."{count_const}"] OF "{sim_config_udt}";')
+        upper = len(group) - 1
+        lines.append(f'    {array_name:<6} : ARRAY[0..{upper}] OF "{sim_config_udt}";')
 
     lines += ["END_VAR", "", "BEGIN"]
 

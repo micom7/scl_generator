@@ -47,10 +47,10 @@ def map_devices(raw_devices: list) -> MapResult:
             mechs_count=0,
             counts={
                 "MECHS_COUNT":    0,
-                "REDLERS_COUNT": -1,
-                "NORIAS_COUNT":  -1,
-                "GATES2P_COUNT": -1,
-                "FANS_COUNT":    -1,
+                "REDLERS_COUNT": 0,
+                "NORIAS_COUNT":  0,
+                "GATES2P_COUNT": 0,
+                "FANS_COUNT":    0,
             },
             gap_slots=[],
             by_type={},
@@ -92,11 +92,11 @@ def map_devices(raw_devices: list) -> MapResult:
     occupied = {d.id for d in mapped}
     gap_slots = [i for i in range(0, mechs_count + 1) if i not in occupied]
 
-    # --- Константи ---
+    # --- Константи (реальна кількість пристроїв кожного типу) ---
     counts: Dict[str, int] = {"MECHS_COUNT": mechs_count}
     for type_key, const_name in _CONST_MAP.items():
         group = by_type_raw.get(type_key, [])
-        counts[const_name] = len(group) - 1 if group else -1
+        counts[const_name] = len(group)  # реальна кількість; 0 якщо немає
 
     # --- by_type для генераторів (MappedDevice, sorted by id) ---
     by_type_mapped: Dict[str, List[MappedDevice]] = {}
