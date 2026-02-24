@@ -1,0 +1,192 @@
+{
+  "deviceTypes": [
+    {
+      "name": "noria",
+      "label": "Noria",
+      "color": "#4A90D9",
+      "icon": "⚙️"
+    },
+    {
+      "name": "gate2P",
+      "label": "Gate2P",
+      "color": "#E67E22",
+      "icon": "⚙️"
+    },
+    {
+      "name": "redler",
+      "label": "Redler",
+      "color": "#27AE60",
+      "icon": "⚙️"
+    },
+    {
+      "name": "Fan",
+      "label": "Fan",
+      "color": "#8E44AD",
+      "icon": "⚙️"
+    },
+    {
+      "name": "Silo",
+      "label": "Silo",
+      "color": "#7F8C8D",
+      "icon": "⚙️"
+    }
+  ],
+  "devices": [
+    {
+      "name": "Noria",
+      "id": "1",
+      "type": "noria",
+      "description": null,
+      "pos_x": -272,
+      "pos_y": -816,
+      "ports": [
+        {
+          "direction": "in",
+          "name": "Засувка1",
+          "port_order": 0
+        },
+        {
+          "direction": "out",
+          "name": "Вихід",
+          "port_order": 1
+        },
+        {
+          "direction": "in",
+          "name": "Засувка2",
+          "port_order": 2
+        },
+        {
+          "direction": "out",
+          "name": "Вихід 2",
+          "port_order": 3
+        },
+        {
+          "direction": "in",
+          "name": "Засувка3",
+          "port_order": 4
+        },
+        {
+          "direction": "out",
+          "name": "Вихід 3",
+          "port_order": 5
+        }
+      ],
+      "internal_connections": [
+        {
+          "in_port": "Засувка1",
+          "out_port": "Вихід"
+        },
+        {
+          "in_port": "Засувка2",
+          "out_port": "Вихід 2"
+        },
+        {
+          "in_port": "Засувка2",
+          "out_port": "Вихід"
+        },
+        {
+          "in_port": "Засувка3",
+          "out_port": "Вихід 3"
+        },
+        {
+          "in_port": "Засувка3",
+          "out_port": "Вихід 2"
+        },
+        {
+          "in_port": "Засувка3",
+          "out_port": "Вихід"
+        },
+        {
+          "in_port": "Засувка2",
+          "out_port": "Вихід 3"
+        }
+      ]
+    },
+    {
+      "name": "Noria 2",
+      "id": "2",
+      "type": "noria",
+      "description": null,
+      "pos_x": -32,
+      "pos_y": -816,
+      "ports": [
+        {
+          "direction": "in",
+          "name": "Вхід",
+          "port_order": 0
+        },
+        {
+          "direction": "out",
+          "name": "Вихід",
+          "port_order": 1
+        }
+      ],
+      "internal_connections": [
+        {
+          "in_port": "Вхід",
+          "out_port": "Вихід"
+        }
+      ]
+    },
+    {
+      "name": "Redler",
+      "id": "3",
+      "type": "redler",
+      "description": null,
+      "pos_x": 208,
+      "pos_y": -816,
+      "ports": [
+        {
+          "direction": "in",
+          "name": "Вхід",
+          "port_order": 0
+        },
+        {
+          "direction": "out",
+          "name": "Вихід",
+          "port_order": 1
+        }
+      ],
+      "internal_connections": [
+        {
+          "in_port": "Вхід",
+          "out_port": "Вихід"
+        }
+      ]
+    },
+    {
+      "name": "Fan",
+      "id": "5",
+      "type": "Fan",
+      "description": null,
+      "pos_x": 48,
+      "pos_y": -656,
+      "ports": [],
+      "internal_connections": []
+    },
+    {
+      "name": "Gate2P",
+      "id": "4",
+      "type": "gate2P",
+      "description": null,
+      "pos_x": 400,
+      "pos_y": -656,
+      "ports": [],
+      "internal_connections": []
+    }
+  ],
+  "connections": [
+    {
+      "source_device": "Noria",
+      "source_port": "Вихід",
+      "target_device": "Noria 2",
+      "target_port": "Вхід"
+    },
+    {
+      "source_device": "Noria 2",
+      "source_port": "Вихід",
+      "target_device": "Redler",
+      "target_port": "Вхід"
+    }
+  ]
+}

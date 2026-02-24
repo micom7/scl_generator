@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кодогенератор JSON → SCL</title>
+<style>
+:root {
+    --bg:           #0f0f1a;
+    --surface:      #16213e;
+    --accent:       #0f3460;
+    --accent-hi:    #1a4a80;
+    --text:         #dde4f0;
+    --text-muted:   #7a88aa;
+    --success:      #4caf50;
+    --warn:         #ffa726;
+    --error:        #ef5350;
+    --skip:         #42a5f5;
+    --border:       #243050;
+    --input-bg:     #1b2a45;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+}
+.wrap { width: 100%; max-width: 760px; }
+
+/* --- Header --- */
+header {
+    background: var(--accent);
+    border-radius: 8px 8px 0 0;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #a8c8ff;
+    letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --- Cards --- */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 24px;
+}
+.card:last-child { border-radius: 0 0 8px 8px; }
+
+.section-label {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+/* --- Drop zone --- */
+.drop-zone {
+    border: 2px dashed var(--accent-hi);
+    border-radius: 6px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: border-color .2s, background .2s, color .2s;
+    user-select: none;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+    border-color: #4a90d9;
+    background: rgba(74,144,217,.07);
+    color: var(--text);
+}
+.drop-zone.has-file {
+    border-color: var(--success);
+    background: rgba(76,175,80,.06);
+}
+.drop-zone.locked { opacity: .5; pointer-events: none; }
+.drop-icon { font-size: 26px; margin-bottom: 6px; }
+.drop-hint { font-size: 13px; }
+.file-ok   { color: var(--success); font-size: 13px; margin-top: 5px; display: none; }
+
+/* --- Params --- */
+.params {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 20px;
+}
+label  { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+input  {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color .2s;
+}
+input:focus { border-color: var(--accent-hi); }
+
+/* --- Button --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background .2s, opacity .2s;
+}
+.btn-primary {
+    background: var(--accent-hi);
+    color: #fff;
+    width: 100%;
+    margin-top: 18px;
+}
+.btn-primary:hover:not(:disabled) { background: #235baa; }
+.btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+
+.btn-dl {
+    background: var(--success);
+    color: #fff;
+    margin-top: 16px;
+}
+.btn-dl:hover { background: #43a047; }
+
+/* --- Spinner --- */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin .75s linear infinite; }
+
+/* --- Result --- */
+#result-section { display: none; }
+
+.device-list { list-style: none; margin-top: 4px; }
+.dev-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.dev-row:last-child { border-bottom: none; }
+.ico-ok   { color: var(--success); }
+.ico-skip { color: var(--skip); }
+.ico-warn { color: var(--warn); }
+.ico-err  { color: var(--error); }
+
+.constants {
+    margin-top: 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+    word-break: break-all;
+}
+.gap-warn { color: var(--warn); font-size: 12px; margin-top: 6px; }
+
+/* --- Error block --- */
+.err-block {
+    background: rgba(239,83,80,.09);
+    border: 1px solid var(--error);
+    border-radius: 5px;
+    padding: 14px 16px;
+}
+.err-title { color: var(--error); font-weight: bold; margin-bottom: 8px; }
+.err-list  { list-style: none; }
+.err-list li { color: #ff8a80; font-size: 13px; padding: 2px 0; }
+.err-list li::before { content: "✕  "; }
+.warn-list li { color: #ffcc80; }
+.warn-list li::before { content: "⚠  "; color: var(--warn); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header>⚙️ &nbsp; Кодогенератор &nbsp; JSON → SCL &nbsp;|&nbsp; TIA Portal 19</header>
+
+  <!-- Upload + Params -->
+  <div class="card">
+    <div class="section-label">Файл graph.json</div>
+
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">📂</div>
+      <div class="drop-hint">Перетягни або натисни, щоб вибрати <b>graph.json</b></div>
+      <div class="file-ok" id="fileOk"></div>
+    </div>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
+
+    <div class="params">
+      <div>
+        <label for="projectName">Назва проекту</label>
+        <input type="text" id="projectName" value="Elevator_System">
+      </div>
+      <div>
+        <label for="version">Версія</label>
+        <input type="text" id="version" value="1.0.0">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="genBtn" disabled>⚙️ &nbsp; Згенерувати SCL</button>
+  </div>
+
+  <!-- Result -->
+  <div class="card" id="result-section">
+    <div style="border-top: 1px solid var(--border); margin: 0 -24px 20px; padding: 0;"></div>
+
+    <!-- Error -->
+    <div id="errBox" style="display:none;"></div>
+
+    <!-- Success -->
+    <div id="okBox" style="display:none;">
+      <div class="section-label">Результат</div>
+      <ul class="device-list" id="devList"></ul>
+      <div class="constants" id="constsLine"></div>
+      <div class="gap-warn" id="gapWarn" style="display:none;"></div>
+      <button class="btn btn-dl" id="dlBtn">⬇️ &nbsp; Скачати SCL-файли (ZIP)</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileOk    = document.getElementById('fileOk');
+const genBtn    = document.getElementById('genBtn');
+const resSec    = document.getElementById('result-section');
+const errBox    = document.getElementById('errBox');
+const okBox     = document.getElementById('okBox');
+const devList   = document.getElementById('devList');
+const constsLine= document.getElementById('constsLine');
+const gapWarn   = document.getElementById('gapWarn');
+const dlBtn     = document.getElementById('dlBtn');
+
+let selectedFile = null;
+let zipBlob      = null;
+let zipFilename  = 'scl_output.zip';
+
+// ── File selection ──────────────────────────────────────────────────────────
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) setFile(fileInput.files[0]);
+});
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]);
+});
+
+function setFile(f) {
+    selectedFile = f;
+    const kb = (f.size / 1024).toFixed(1);
+    fileOk.textContent = `✅  ${f.name}  (${kb} KB)`;
+    fileOk.style.display = 'block';
+    dropZone.classList.add('has-file');
+    genBtn.disabled = false;
+}
+
+// ── Generate ────────────────────────────────────────────────────────────────
+genBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    resSec.style.display = 'none';
+    errBox.style.display = 'none';
+    okBox.style.display  = 'none';
+    zipBlob = null;
+
+    const fd = new FormData();
+    fd.append('file',         selectedFile);
+    fd.append('project_name', document.getElementById('projectName').value || 'Elevator_System');
+    fd.append('version',      document.getElementById('version').value || '1.0.0');
+
+    try {
+        const resp = await fetch('/generate', { method: 'POST', body: fd });
+        const data = await resp.json();
+        resSec.style.display = 'block';
+        if (data.ok) renderSuccess(data);
+        else         renderError(data);
+    } catch (err) {
+        resSec.style.display = 'block';
+        renderError({ errors: ['Мережева помилка: ' + err.message], warnings: [] });
+    } finally {
+        setLoading(false);
+    }
+});
+
+function setLoading(on) {
+    if (on) {
+        genBtn.disabled = true;
+        genBtn.innerHTML = '<span class="spin">⏳</span> &nbsp; Генерація…';
+        dropZone.classList.add('locked');
+    } else {
+        genBtn.disabled = !selectedFile;
+        genBtn.innerHTML = '⚙️ &nbsp; Згенерувати SCL';
+        dropZone.classList.remove('locked');
+    }
+}
+
+// ── Render success ──────────────────────────────────────────────────────────
+function renderSuccess(data) {
+    okBox.style.display = 'block';
+    devList.innerHTML = '';
+
+    for (const dev of (data.devices || [])) {
+        const li = document.createElement('li');
+        li.className = 'dev-row';
+        if (dev.status === 'ok') {
+            li.innerHTML =
+                `<span class="ico-ok">✅</span>` +
+                `<span>${esc(dev.type_name)}&nbsp; id=${dev.id} &nbsp;→&nbsp; ` +
+                `${esc(dev.tia_type)},&nbsp; Slot=${dev.slot_id},&nbsp; TIdx=${dev.typed_index}</span>`;
+        } else if (dev.status === 'skip') {
+            li.innerHTML =
+                `<span class="ico-skip">⏭</span>` +
+                `<span>${esc(dev.type_name)}&nbsp; id=${dev.id} &nbsp;→&nbsp; ` +
+                `${esc(dev.tia_type)},&nbsp; Slot=${dev.slot_id} <em>(no simulator)</em></span>`;
+        } else if (dev.status === 'warn') {
+            li.innerHTML =
+                `<span class="ico-warn">⚠️</span><span>${esc(dev.message || '')}</span>`;
+        }
+        devList.appendChild(li);
+    }
+
+    // Constants
+    const c = data.constants || {};
+    const parts = Object.entries(c)
+        .filter(([, v]) => v >= 0)
+        .map(([k, v]) => `${k}=${v}`);
+    constsLine.textContent = parts.join('   ');
+
+    // Gap slots
+    if (data.gap_slots && data.gap_slots.length > 0) {
+        gapWarn.textContent = `⚠️  Порожні слоти у Mechs[]: ${data.gap_slots.join(', ')}`;
+        gapWarn.style.display = 'block';
+    } else {
+        gapWarn.style.display = 'none';
+    }
+
+    // ZIP blob
+    if (data.zip_base64) {
+        const bin = atob(data.zip_base64);
+        const buf = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+        zipBlob     = new Blob([buf], { type: 'application/zip' });
+        zipFilename = data.zip_filename || 'scl_output.zip';
+    }
+}
+
+// ── Render error ────────────────────────────────────────────────────────────
+function renderError(data) {
+    errBox.style.display = 'block';
+    let html = '<div class="err-block"><div class="err-title">❌ Помилка генерації</div>';
+
+    if (data.errors && data.errors.length) {
+        html += '<ul class="err-list">';
+        for (const e of data.errors) html += `<li>${esc(e)}</li>`;
+        html += '</ul>';
+    }
+    if (data.warnings && data.warnings.length) {
+        html += '<ul class="err-list warn-list" style="margin-top:8px;">';
+        for (const w of data.warnings) html += `<li>${esc(w)}</li>`;
+        html += '</ul>';
+    }
+    html += '</div>';
+    errBox.innerHTML = html;
+}
+
+// ── Download ─────────────────────────────────────────────────────────────────
+dlBtn.addEventListener('click', () => {
+    if (!zipBlob) return;
+    const url = URL.createObjectURL(zipBlob);
+    const a   = Object.assign(document.createElement('a'), { href: url, download: zipFilename });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+});
+
+// ── Utils ────────────────────────────────────────────────────────────────────
+function esc(s) {
+    return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
