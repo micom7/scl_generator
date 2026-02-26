@@ -15,8 +15,11 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from generator.generators.db_mechs import generate_db_mechs
 from generator.generators.db_sim_config import generate_db_sim_config
 from generator.generators.db_sim_mechs import generate_db_sim_mechs
+from generator.generators.mechs_csv import generate_mechs_csv
 from generator.mapper import map_devices
 from generator.parser import parse_graph
+
+_BOM = b"\xef\xbb\xbf"
 
 app = FastAPI(title="JSON → SCL Codegen")
 
@@ -105,11 +108,12 @@ async def generate(
         "source": source_name,
     }
 
-    # --- Генерація SCL ---
+    # --- Генерація SCL + CSV ---
     try:
         db_mechs = generate_db_mechs(map_result, ctx)
         db_sim_config = generate_db_sim_config(map_result, ctx)
         db_sim_mechs = generate_db_sim_mechs(map_result, ctx)
+        mechs_csv = generate_mechs_csv(map_result, ctx)
     except Exception as exc:
         return JSONResponse(
             status_code=500,
@@ -118,12 +122,13 @@ async def generate(
 
     report_text = _build_report_text(ctx, map_result, parse_result.warnings)
 
-    # --- ZIP в пам'яті ---
+    # --- ZIP в пам'яті (SCL-файли з UTF-8 BOM для TIA Portal) ---
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("DB_Mechs.scl",        db_mechs.encode("utf-8"))
-        zf.writestr("DB_SimConfig.scl",    db_sim_config.encode("utf-8"))
-        zf.writestr("DB_SimMechs.scl",     db_sim_mechs.encode("utf-8"))
+        zf.writestr("DB_Mechs.scl",        _BOM + db_mechs.encode("utf-8"))
+        zf.writestr("DB_SimConfig.scl",    _BOM + db_sim_config.encode("utf-8"))
+        zf.writestr("DB_SimMechs.scl",     _BOM + db_sim_mechs.encode("utf-8"))
+        zf.writestr("Mechs.csv",           _BOM + mechs_csv.encode("utf-8"))
         zf.writestr("generation_report.txt", report_text.encode("utf-8"))
     zip_buf.seek(0)
     zip_b64 = base64.b64encode(zip_buf.read()).decode("ascii")
@@ -202,5 +207,5 @@ def _build_report_text(ctx: dict, map_result, warnings: list) -> str:
         slots_str = ", ".join(str(s) for s in map_result.gap_slots)
         lines.append(f"  [WARN] Порожні слоти у Mechs[]: {slots_str}")
 
-    lines += ["", "Files:", "  DB_Mechs.scl     OK", "  DB_SimConfig.scl OK", "  DB_SimMechs.scl  OK", ""]
+    lines += ["", "Files:", "  DB_Mechs.scl     OK", "  DB_SimConfig.scl OK", "  DB_SimMechs.scl  OK", "  Mechs.csv        OK", ""]
     return "\n".join(lines)

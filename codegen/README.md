@@ -27,7 +27,8 @@
 cd codegen
 pip install -r requirements.txt
 #uvicorn main:app --reload --port 8080
-py -3.12 -m uvicorn main:app --reload --port 8080
+#py -3.12 -m uvicorn main:app --reload --port 8080
+python -m uvicorn main:app --reload --port 8080
 ```
 
 Сервіс доступний на **http://localhost:8080**

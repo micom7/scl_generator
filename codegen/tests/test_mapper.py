@@ -55,11 +55,11 @@ def test_counts_full():
         _dev(5, "Fan",     "fan"),
     ]
     r = map_devices(devs)
-    assert r.counts["MECHS_COUNT"]    == 5   # max(id)
-    assert r.counts["NORIAS_COUNT"]   == 2   # 2 норії
-    assert r.counts["REDLERS_COUNT"]  == 1   # 1 редлер
-    assert r.counts["GATES2P_COUNT"]  == 1   # 1 засувка
-    assert r.counts["FANS_COUNT"]     == 1   # 1 вентилятор
+    assert r.counts["MECHS_COUNT"]    == 5   # max(id) — верхня межа Mechs[]
+    assert r.counts["NORIAS_COUNT"]   == 1   # 2-1=1 — верхня межа Noria[0..1]
+    assert r.counts["REDLERS_COUNT"]  == 0   # 1-1=0 — верхня межа Redler[0..0]
+    assert r.counts["GATES2P_COUNT"]  == 0   # 1-1=0 — верхня межа Gate2P[0..0]
+    assert r.counts["FANS_COUNT"]     == 0   # 1-1=0 — верхня межа Fan[0..0]
 
 
 # ── Порожній тип → count = 0 ─────────────────────────────────────────────────
@@ -70,10 +70,10 @@ def test_count_empty_type():
     assert r.counts["FANS_COUNT"]    == 0
 
 
-# ── gate2p: has_simulator = False ─────────────────────────────────────────────
-def test_no_simulator_gate2p():
+# ── gate2p: has_simulator = True (FC_SimGate2P реалізовано) ──────────────────
+def test_has_simulator_gate2p():
     r = map_devices([_dev(4, "Gate2P", "gate2p")])
-    assert r.devices[0].has_simulator is False
+    assert r.devices[0].has_simulator is True
 
 
 # ── noria: has_simulator = True ──────────────────────────────────────────────

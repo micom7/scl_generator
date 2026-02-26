@@ -26,9 +26,9 @@ TYPE_MAPPING = {
         "udt": "UDT_Gate2P",
         "array_name": "Gate2P",
         "count_const": "GATES2P_COUNT",
-        "has_simulator": False,
-        "sim_state_udt": "",
-        "sim_config_udt": "",
+        "has_simulator": True,
+        "sim_state_udt": "UDT_SimGate2PState",
+        "sim_config_udt": "UDT_SimGate2PConfig",
     },
     "fan": {
         "tia_type": "TYPE_FAN",
@@ -70,6 +70,14 @@ SIM_CONFIG_DEFAULTS: dict[str, list[tuple[str, str]]] = {
         ("Enable",               "TRUE"),
         ("StartupTime_ms",       "3000"),
         ("StopTime_ms",          "2000"),
+        ("SimFault_Breaker",     "FALSE"),
+        ("FaultTime_Breaker_ms", "10000"),
+        ("ManualReset",          "FALSE"),
+    ],
+    "gate2p": [
+        ("Enable",               "FALSE"),   # вимкнено за замовчуванням
+        ("InitAtPos0",           "TRUE"),
+        ("TravelTime_ms",        "5000"),
         ("SimFault_Breaker",     "FALSE"),
         ("FaultTime_Breaker_ms", "10000"),
         ("ManualReset",          "FALSE"),
