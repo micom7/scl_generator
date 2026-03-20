@@ -25,7 +25,6 @@ _CONST_MAP = {
 @dataclass
 class MappedDevice:
     id: int
-    slot: int            # sequential index in Mechs[] (0-based, no gaps)
     name: str
     type_key: str        # normalized lowercase
     raw_type: str        # original string
@@ -40,9 +39,9 @@ class MappedDevice:
 @dataclass
 class MapResult:
     devices: List[MappedDevice]
-    mechs_count: int                           # len(devices) - 1 (no gaps, sequential slots)
-    counts: Dict[str, int]                     # MECHS_COUNT, NORIAS_COUNT, …
-    gap_slots: List[int]                       # завжди [] (слоти послідовні)
+    mechs_count: int                           # max(id) among supported devices
+    counts: Dict[str, int]                     # MECHS_COUNT, NORIAS_COUNT, …; -1 = пустий тип
+    gap_slots: List[int]                       # слоти 0..mechs_count без пристроїв
     by_type: Dict[str, List[MappedDevice]]     # type_key → список (sorted by id)
 
 
@@ -81,17 +80,12 @@ def map_devices(raw_devices: list) -> MapResult:
         for i, dev in enumerate(group):
             typed_index_map[dev.id] = i
 
-    # --- Призначаємо послідовні slot (сортуємо глобально за id) ---
-    sorted_by_id = sorted(raw_devices, key=lambda d: d.id)
-    slot_map: Dict[int, int] = {dev.id: i for i, dev in enumerate(sorted_by_id)}
-
     # --- Будуємо MappedDevice ---
     mapped: List[MappedDevice] = []
     for dev in raw_devices:
         info = TYPE_MAPPING[dev.type_key]
         mapped.append(MappedDevice(
             id=dev.id,
-            slot=slot_map[dev.id],
             name=dev.name,
             type_key=dev.type_key,
             raw_type=dev.raw_type,
@@ -103,7 +97,11 @@ def map_devices(raw_devices: list) -> MapResult:
             sim_config_udt=info.get("sim_config_udt", ""),
         ))
 
-    mechs_count = len(mapped) - 1
+    mechs_count = max(d.id for d in mapped)
+
+    # --- Прогалини ---
+    occupied = {d.id for d in mapped}
+    gap_slots = [i for i in range(0, mechs_count + 1) if i not in occupied]
 
     # --- Константи (верхня межа ARRAY[0..N], тобто len-1; 0 якщо типу немає) ---
     counts: Dict[str, int] = {"MECHS_COUNT": mechs_count}
@@ -122,6 +120,6 @@ def map_devices(raw_devices: list) -> MapResult:
         devices=mapped,
         mechs_count=mechs_count,
         counts=counts,
-        gap_slots=[],
+        gap_slots=gap_slots,
         by_type=by_type_mapped,
     )

@@ -58,19 +58,19 @@ def generate_db_mechs(result: MapResult, ctx: Dict[str, Any]) -> str:
         group_sorted = sorted(group, key=lambda d: d.id)
 
         if len(group_sorted) == 1:
-            slot_range = f"slot {group_sorted[0].slot}"
+            id_range = f"slot {group_sorted[0].id}"
         else:
-            slot_range = f"slots {group_sorted[0].slot}..{group_sorted[-1].slot}"
+            id_range = f"slots {group_sorted[0].id}..{group_sorted[-1].id}"
 
         lines.append("")
-        lines.append(f"    // --- {type_name} ({slot_range}) ---")
+        lines.append(f"    // --- {type_name} ({id_range}) ---")
 
         for dev in group_sorted:
             lines.append(f'    // {dev.raw_type} "{dev.name}" (id={dev.id})')
-            lines.append(f"    Mechs[{dev.slot}].SlotId     := {dev.slot};")
-            lines.append(f'    Mechs[{dev.slot}].DeviceType := "{tia_type}";')
-            lines.append(f"    Mechs[{dev.slot}].TypedIndex := {dev.typed_index};")
-            lines.append(f"    Mechs[{dev.slot}].Enable_OK  := TRUE;")
+            lines.append(f"    Mechs[{dev.id}].SlotId     := {dev.id};")
+            lines.append(f'    Mechs[{dev.id}].DeviceType := "{tia_type}";')
+            lines.append(f"    Mechs[{dev.id}].TypedIndex := {dev.typed_index};")
+            lines.append(f"    Mechs[{dev.id}].Enable_OK  := TRUE;")
             lines.append("")
 
     lines.append("END_DATA_BLOCK")
