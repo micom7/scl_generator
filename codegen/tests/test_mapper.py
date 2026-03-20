@@ -31,18 +31,34 @@ def test_typed_index_sorted_by_id():
     assert by_id[3].typed_index == 0
 
 
-# ── MECHS_COUNT = max(id) ─────────────────────────────────────────────────────
+# ── MECHS_COUNT = len(devices) - 1 (послідовні слоти, без прогалин) ──────────
 def test_mechs_count():
     devs = [_dev(1, "Noria", "noria"), _dev(5, "Fan", "fan")]
     r = map_devices(devs)
-    assert r.mechs_count == 5
+    assert r.mechs_count == 1   # 2 devices → slots 0..1
 
 
-# ── Прогалини ────────────────────────────────────────────────────────────────
+# ── Прогалини завжди відсутні ────────────────────────────────────────────────
 def test_gap_slots():
     devs = [_dev(1, "Noria", "noria"), _dev(5, "Fan", "fan")]
     r = map_devices(devs)
-    assert set(r.gap_slots) == {0, 2, 3, 4}
+    assert r.gap_slots == []
+
+
+# ── Послідовне призначення slot за зростанням id ─────────────────────────────
+def test_sequential_slots():
+    devs = [
+        _dev(10, "Fan",   "fan"),
+        _dev(3,  "Noria", "noria"),
+        _dev(7,  "Gate",  "gate2p"),
+    ]
+    r = map_devices(devs)
+    by_id = {d.id: d for d in r.devices}
+    # сортування за id: 3→slot0, 7→slot1, 10→slot2
+    assert by_id[3].slot  == 0
+    assert by_id[7].slot  == 1
+    assert by_id[10].slot == 2
+    assert r.mechs_count  == 2
 
 
 # ── Константи ─────────────────────────────────────────────────────────────────
@@ -55,7 +71,7 @@ def test_counts_full():
         _dev(5, "Fan",     "fan"),
     ]
     r = map_devices(devs)
-    assert r.counts["MECHS_COUNT"]    == 5   # max(id) — верхня межа Mechs[]
+    assert r.counts["MECHS_COUNT"]    == 4   # len-1=4 — верхня межа Mechs[]
     assert r.counts["NORIAS_COUNT"]   == 1   # 2-1=1 — верхня межа Noria[0..1]
     assert r.counts["REDLERS_COUNT"]  == 0   # 1-1=0 — верхня межа Redler[0..0]
     assert r.counts["GATES2P_COUNT"]  == 0   # 1-1=0 — верхня межа Gate2P[0..0]
